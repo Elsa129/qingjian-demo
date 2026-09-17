@@ -104,6 +104,7 @@
   .row:first-child{padding-top:2px}
   .row .d{font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
   .row .v{font-weight:700;font-variant-numeric:tabular-nums}
+  .bt-chip{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-soft);border-radius:999px;padding:2px 8px;vertical-align:middle}
   .row .del{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:12px;padding:4px 6px;border-radius:6px}
   .row .del:hover{color:var(--danger);background:var(--danger-soft)}
   .row .edit{background:none;border:none;color:var(--primary);cursor:pointer;font-size:12px;padding:4px 6px;border-radius:6px}
@@ -840,6 +841,27 @@ function renderBodyCalendar(){
   while(cells.length<42) cells.push('<div class="cal-day blank"></div>');
   grid.innerHTML=cells.join('');
 }
+function bodyShapeLabel(w){
+  const profile=db.profile;
+  const height=profile?profile.height:null;
+  if(!height || w.weight==null) return '';
+  const h=height/100;
+  const bmi=w.weight/(h*h);
+  const bmiText=bmi<18.5?'偏瘦':bmi<24?'正常':bmi<28?'超重':'肥胖';
+  const waist=w.waist, chest=w.chest, hip=w.hip;
+  if(waist!=null && chest!=null && hip!=null && waist>0 && chest>0 && hip>0){
+    const gender=(profile&&profile.gender)||'male';
+    const whr=waist/hip;
+    const apple=gender==='female'?whr>0.85:whr>0.9;
+    let shape='直筒型';
+    if(apple && waist>=Math.min(chest,hip)-1) shape='苹果型';
+    else if(hip>chest+5) shape='梨型';
+    else if(chest>hip+5) shape='倒三角型';
+    else if(Math.abs(chest-hip)<=5 && waist<Math.min(chest,hip)-8) shape='沙漏型';
+    return '<span class="bt-chip">'+shape+'</span>';
+  }
+  return '<span class="bt-chip">BMI '+bmi.toFixed(1)+' '+bmiText+'</span>';
+}
 function renderBodyDetail(date){
   const w=db.weights.find(x=>x.date===date);
   const box=document.getElementById('weightList');
@@ -854,7 +876,7 @@ function renderBodyDetail(date){
   if(w.arm!=null) dims.push('臂 '+w.arm.toFixed(1));
   if(w.thigh!=null) dims.push('大腿 '+w.thigh.toFixed(1));
   if(w.calf!=null) dims.push('小腿 '+w.calf.toFixed(1));
-  let html='<div class="row"><div><span class="d">'+shortDate(w.date)+'</span>　体重 <b class="v">'+w.weight.toFixed(1)+' kg</b>'+(dims.length?'<div class="d" style="font-size:11.5px;margin-top:2px">'+dims.join(' · ')+'</div>':'')+'</div><div style="display:flex;align-items:center;gap:8px"><button class="edit" onclick="editWeight(\''+w.date+'\')">编辑</button><button class="del" onclick="delWeight(\''+w.date+'\')">删除</button></div></div>';
+  let html='<div class="row"><div><span class="d">'+shortDate(w.date)+'</span>　体重 <b class="v">'+w.weight.toFixed(1)+' kg</b>'+bodyShapeLabel(w)+(dims.length?'<div class="d" style="font-size:11.5px;margin-top:2px">'+dims.join(' · ')+'</div>':'')+'</div><div style="display:flex;align-items:center;gap:8px"><button class="edit" onclick="editWeight(\''+w.date+'\')">编辑</button><button class="del" onclick="delWeight(\''+w.date+'\')">删除</button></div></div>';
   if(editingBodyInline===date) html+=bodyInlinePanel(w);
   box.innerHTML=html;
 }

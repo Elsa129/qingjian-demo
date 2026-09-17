@@ -1,4 +1,4 @@
-const CACHE = 'qingjian-v1';
+const CACHE = 'qingjian-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -28,6 +28,18 @@ self.addEventListener('activate', function(e){
 
 self.addEventListener('fetch', function(e){
   if(e.request.method !== 'GET') return;
+  if(e.request.mode === 'navigate'){
+    e.respondWith(
+      fetch(e.request).then(function(res){
+        const clone = res.clone();
+        caches.open(CACHE).then(function(c){ return c.put('./index.html', clone); });
+        return res;
+      }).catch(function(){
+        return caches.match('./index.html');
+      })
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request, {ignoreSearch:true}).then(function(hit){
       if(hit) return hit;
