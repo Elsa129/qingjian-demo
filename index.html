@@ -143,6 +143,8 @@
   .food-search{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#FBFCFA;outline:none;margin-bottom:10px}
   .food-search:focus{border-color:var(--primary)}
   .food-list{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+  .create-bar{display:flex;justify-content:center;margin:4px 0 10px}
+  #foodCreate .inline-edit{margin-top:0}
   .food-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13.5px}
   .food-item:last-child{border-bottom:none}
   .food-item.on{background:var(--primary-soft)}
@@ -335,8 +337,9 @@
     <section id="view-food" class="view">
       <div class="view-title">饮食记录</div>
       <div class="card">
-        <input class="food-search" id="foodSearch" placeholder="搜索食物，如 米饭 / 鸡蛋" oninput="renderFoodList()">
         <div class="food-list" id="foodList"></div>
+        <input class="food-search" id="foodSearch" placeholder="输入食物名称，如 米饭 / 鸡蛋" oninput="renderFoodList()">
+        <div id="foodCreate"></div>
         <div class="add-bar">
           <input type="number" id="foodGrams" step="1" min="1" placeholder="克数，如 200">
           <button id="addFoodBtn" onclick="addFood()">添加</button>
@@ -344,6 +347,7 @@
         <button class="btn ghost" id="cancelFoodEditBtn" onclick="cancelFoodEdit()" style="display:none;margin-top:8px;width:100%">取消编辑</button>
         <div class="total-chip" id="foodTotal">今日合计：--</div>
         <div id="todayFoodList"></div>
+        <div id="hiddenBuiltinList"></div>
       </div>
 
       <div class="card">
@@ -361,35 +365,6 @@
         <div class="total-chip" id="foodHistTotal">合计：--</div>
       </div>
 
-      <div class="view-title">自定义食物</div>
-      <div class="card">
-        <div class="field-row">
-          <div class="field"><label>名称</label><input type="text" id="cName" placeholder="如 红烧肉"></div>
-          <div class="field"><label>基准重量 / 容量</label>
-            <div class="basis-row">
-              <input type="number" id="cBasis" step="1" min="1" value="100" oninput="updatePreviews()">
-              <select id="cBasisUnit" onchange="updatePreviews()"><option value="g" selected>克</option><option value="ml">毫升</option></select>
-            </div>
-          </div>
-        </div>
-        <div class="form-hint">下面按营养成分表原样填写「该基准」下的数值，每项下方实时显示折合每 100 克 / 100 毫升的换算结果（能量 1 kcal ≈ 4.184 kJ）。</div>
-        <div class="field-row">
-          <div class="field"><label>能量（kJ / 基准）</label><input type="number" id="cKj" step="1" min="0" oninput="updatePreviews()" placeholder="如 660"><div class="cv" id="cvKj"></div></div>
-          <div class="field"><label>蛋白质（g / 基准）</label><input type="number" id="cP" step="0.1" min="0" oninput="updatePreviews()" placeholder="如 2.5"><div class="cv" id="cvP"></div></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>脂肪（g / 基准）</label><input type="number" id="cF" step="0.1" min="0" oninput="updatePreviews()" placeholder="如 3.2"><div class="cv" id="cvF"></div></div>
-          <div class="field"><label>胆固醇（mg / 基准）</label><input type="number" id="cCh" step="0.1" min="0" oninput="updatePreviews()" placeholder="如 0"><div class="cv" id="cvCh"></div></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>碳水化合物（g / 基准）</label><input type="number" id="cC" step="0.1" min="0" oninput="updatePreviews()" placeholder="如 30"><div class="cv" id="cvC"></div></div>
-          <div class="field"><label>钠（mg / 基准）</label><input type="number" id="cNa" step="0.1" min="0" oninput="updatePreviews()" placeholder="如 150"><div class="cv" id="cvNa"></div></div>
-        </div>
-        <button class="btn" id="addCustomBtn" onclick="addCustom()">添加自定义食物</button>
-        <button class="btn ghost" id="cancelCustomEditBtn" onclick="cancelCustomEdit()" style="display:none;margin-top:8px;width:100%">取消编辑</button>
-        <div id="customList"></div>
-        <div id="hiddenBuiltinList"></div>
-      </div>
     </section>
 
     <!-- ===== 视图：图表 ===== -->
@@ -769,6 +744,7 @@ let editingTodayPos=-1;
 let editingHistPos=-1;
 let editingCustomInline=null;
 let editingBuiltinInline=null;
+let creatingCustomName=null;
 let bodySelected=(()=>{ const ws=sortedWeights(); return ws.length?ws[ws.length-1].date:todayStr(); })();
 let bodyCalCursor=(()=>{ const p=bodySelected.split('-'); return {y:+p[0], m:+p[1]-1}; })();
 function setBodyDate(date){
@@ -899,12 +875,9 @@ function bodyInlinePanel(w){
 function renderFood(){
   renderFoodList();
   renderTodayFoods();
-  renderCustomList();
   renderHiddenBuiltins();
   renderFoodHistory();
   updateFoodButton();
-  updateCustomButton();
-  updatePreviews();
 }
 function delWeight(date){
   db.weights=db.weights.filter(w=>w.date!==date);
@@ -1093,11 +1066,18 @@ function saveFoodInlineFromList(list,pos){
   return true;
 }
 function renderFoodList(){
-  const q=(document.getElementById('foodSearch').value||'').trim().toLowerCase();
+  const q=(document.getElementById('foodSearch').value||'').trim();
+  const ql=q.toLowerCase();
   const all=foodAll();
-  const list=all.map((f,i)=>({f,i})).filter(o=>!q||o.f.n.toLowerCase().includes(q));
+  const list=all.map((f,i)=>({f,i})).filter(o=>!q||o.f.n.toLowerCase().includes(ql));
   const box=document.getElementById('foodList');
-  if(!list.length){ box.innerHTML='<div class="empty" style="padding:14px 8px">没有匹配的食物。可在下方「自定义食物」里添加。</div>'; return; }
+  if(!list.length){
+    let html='<div class="empty" style="padding:14px 8px">没有匹配的食物。</div>';
+    if(q) html+='<div class="create-bar"><button class="btn mini" onclick="startCreateCustom()">新增「'+esc(q)+'」为自定义食物</button></div>';
+    box.innerHTML=html;
+    renderFoodCreate();
+    return;
+  }
   box.innerHTML=list.map(o=>{
     const f=o.f, i=o.i;
     const on=selectedFood && selectedFood.n===f.n && selectedFood.k===f.k ? ' on':'';
@@ -1118,11 +1098,70 @@ function renderFoodList(){
     }
     return row;
   }).join('');
+  renderFoodCreate();
 }
 function pickFood(i){
   selectedFood=foodAll()[i];
   renderFoodList();
   document.getElementById('foodGrams').focus();
+}
+function renderFoodCreate(){
+  const box=document.getElementById('foodCreate');
+  if(!box) return;
+  if(!creatingCustomName){
+    box.innerHTML='';
+    return;
+  }
+  box.innerHTML=customCreatePanel(creatingCustomName);
+}
+function startCreateCustom(){
+  const q=(document.getElementById('foodSearch').value||'').trim();
+  if(!q){ toast('请先输入食物名称'); return; }
+  creatingCustomName=q;
+  renderFoodList();
+  const name=document.getElementById('ncName');
+  if(name){ name.focus(); }
+}
+function cancelCreateCustom(){
+  creatingCustomName=null;
+  renderFoodList();
+}
+function customCreatePanel(name){
+  return '<div class="inline-edit create-custom">'
+    +'<div class="inline-grid">'
+    +'<div><label>名称</label><input type="text" id="ncName" value="'+esc(name)+'"></div>'
+    +'<div><label>基准重量 / 容量</label><div class="basis-row"><input type="number" id="ncBasis" step="1" min="1" value="100"><select id="ncBasisUnit"><option value="g" selected>克</option><option value="ml">毫升</option></select></div></div>'
+    +'<div><label>能量（kJ / 基准）</label><input type="number" id="ncKj" step="1" min="0" placeholder="如 660"></div>'
+    +'<div><label>蛋白质（g / 基准）</label><input type="number" id="ncP" step="0.1" min="0" placeholder="如 2.5"></div>'
+    +'<div><label>脂肪（g / 基准）</label><input type="number" id="ncF" step="0.1" min="0" placeholder="如 3.2"></div>'
+    +'<div><label>胆固醇（mg / 基准）</label><input type="number" id="ncCh" step="0.1" min="0" placeholder="如 0"></div>'
+    +'<div><label>碳水化合物（g / 基准）</label><input type="number" id="ncC" step="0.1" min="0" placeholder="如 30"></div>'
+    +'<div><label>钠（mg / 基准）</label><input type="number" id="ncNa" step="0.1" min="0" placeholder="如 150"></div>'
+    +'</div>'
+    +'<div class="form-hint">按营养成分表填写「该基准」下的数值，自动换算为每 100 克 / 100 毫升（能量 1 kcal ≈ 4.184 kJ）。</div>'
+    +'<div class="inline-actions"><button class="btn mini" onclick="saveCreateCustom()">保存并选中</button><button class="btn mini ghost" onclick="cancelCreateCustom()">取消</button></div>'
+    +'</div>';
+}
+function saveCreateCustom(){
+  const name=(document.getElementById('ncName').value||'').trim();
+  const basis=parseFloat(document.getElementById('ncBasis').value);
+  const kj=parseFloat(document.getElementById('ncKj').value);
+  if(!name){ toast('请输入食物名称'); return; }
+  if(isNaN(basis)||basis<=0){ toast('请输入有效的基准重量 / 容量'); return; }
+  if(isNaN(kj)||kj<0||kj>100000){ toast('请输入有效能量（kJ / 基准）'); return; }
+  const unit=document.getElementById('ncBasisUnit').value;
+  const gv=id=>{ const x=parseFloat(document.getElementById(id).value); return (isNaN(x)||x<0)?0:x; };
+  const sc=100/basis;
+  const k=+(kj*sc/4.184).toFixed(1);
+  const item={name:name, basis:basis, unit:unit, kj:+(kj*sc).toFixed(1), k:k, p:+(gv('ncP')*sc).toFixed(1), f:+(gv('ncF')*sc).toFixed(1), ch:+(gv('ncCh')*sc).toFixed(1), c:+(gv('ncC')*sc).toFixed(1), na:+(gv('ncNa')*sc).toFixed(1)};
+  db.customs.push(item);
+  save();
+  creatingCustomName=null;
+  selectedFood=foodAll().find(f=>f.custom && f.n===name+'（自定义）')||null;
+  document.getElementById('foodSearch').value=name;
+  renderFoodList();
+  document.getElementById('foodGrams').focus();
+  toast('已新增「'+name+'」，输入克数后点「添加」即可记录');
 }
 function addFood(){
   if(!selectedFood){ toast('先在列表里选一种食物'); return; }
@@ -1237,48 +1276,16 @@ function delFoodHist(date, name, grams, kcal){
 }
 
 /* ===== 自定义食物 ===== */
-function renderCustomList(){
-  const box=document.getElementById('customList');
-  if(!db.customs.length){
-    box.innerHTML='<div class="empty" style="padding:12px 8px">还没有自定义食物。填好上面表单，添加后即可在搜索列表里选用。</div>';
-    return;
-  }
-  box.innerHTML=db.customs.map((c,i)=>{
-    const unit=c.unit||'g';
-    const extra=(c.ch||c.na)?' · 胆固醇 '+c.ch+'mg · 钠 '+c.na+'mg':'';
-    let html='<div class="row"><div><b class="v">'+esc(c.name)+'</b> <span class="d">基准 '+(c.basis||100)+' '+(unit==='ml'?'毫升':'克')+' · 折合每 100'+(unit==='ml'?'ml':'g')+'：'+c.k+' kcal'+extra+'</span></div><div style="display:flex;align-items:center;gap:8px"><button class="edit" onclick="editCustom('+i+')">编辑</button><button class="del" onclick="delCustom('+i+')">删除</button></div></div>';
-    if(editingCustomInline && editingCustomInline.idx===i && editingCustomInline.where==='customList'){
-      html+=customInlinePanel(i);
-    }
-    return html;
-  }).join('');
-}
-function updateCustomButton(){
-  const btn=document.getElementById('addCustomBtn');
-  const cancel=document.getElementById('cancelCustomEditBtn');
-  if(btn) btn.textContent='添加自定义食物';
-  if(cancel) cancel.style.display='none';
-}
-function clearCustomForm(){
-  document.getElementById('cBasis').value=100;
-  document.getElementById('cBasisUnit').value='g';
-  ['cName','cKj','cP','cF','cCh','cC','cNa'].forEach(id=>document.getElementById(id).value='');
-  updatePreviews();
-}
 function editCustom(i, where){
   const c=db.customs[i];
   if(!c) return;
-  const loc=where||'customList';
+  const loc=where||'foodList';
   if(editingCustomInline && editingCustomInline.idx===i && editingCustomInline.where===loc){
     editingCustomInline=null;
   }else{
     editingCustomInline={idx:i, where:loc};
   }
-  renderFoodList(); renderCustomList();
-}
-function cancelCustomEdit(){
-  clearCustomForm();
-  updateCustomButton();
+  renderFoodList();
 }
 function customInlinePanel(i){
   const c=db.customs[i];
@@ -1314,17 +1321,17 @@ function saveCustomInline(i){
   if(db.customs[i]) db.customs[i]=item; else db.customs.push(item);
   save();
   editingCustomInline=null;
-  renderFoodList(); renderCustomList();
+  renderFoodList();
   toast('自定义食物已更新');
 }
 function cancelCustomInline(){
   editingCustomInline=null;
-  renderFoodList(); renderCustomList();
+  renderFoodList();
 }
 function editBuiltin(name){
   if(editingBuiltinInline===name) editingBuiltinInline=null;
   else { editingBuiltinInline=name; editingCustomInline=null; }
-  renderFoodList(); renderCustomList();
+  renderFoodList();
 }
 function builtinInlinePanel(name){
   const base=FOODS.find(x=>x.n===name);
@@ -1353,19 +1360,19 @@ function saveBuiltinInline(name){
   db.foodOverrides[name]={k:k, p:g('ieBP'), f:g('ieBF'), c:g('ieBC'), ch:g('ieBCh'), na:g('ieBNa')};
   save();
   editingBuiltinInline=null;
-  renderFoodList(); renderCustomList();
+  renderFoodList();
   toast('已更新「'+name+'」营养数值');
 }
 function cancelBuiltinInline(){
   editingBuiltinInline=null;
-  renderFoodList(); renderCustomList();
+  renderFoodList();
 }
 function resetBuiltin(name){
   if(!confirm('恢复「'+name+'」为默认营养数值？')) return;
   if(db.foodOverrides) delete db.foodOverrides[name];
   if(editingBuiltinInline===name) editingBuiltinInline=null;
   save();
-  renderFoodList(); renderCustomList();
+  renderFoodList();
   toast('已恢复默认营养数值');
 }
 function deleteBuiltin(name){
@@ -1375,13 +1382,13 @@ function deleteBuiltin(name){
   if(db.foodOverrides) delete db.foodOverrides[name];
   if(editingBuiltinInline===name) editingBuiltinInline=null;
   save();
-  renderFoodList(); renderCustomList(); renderHiddenBuiltins();
+  renderFoodList(); renderHiddenBuiltins();
   toast('已删除内置食物');
 }
 function restoreBuiltin(name){
   if(db.hiddenBuiltins) delete db.hiddenBuiltins[name];
   save();
-  renderFoodList(); renderCustomList(); renderHiddenBuiltins();
+  renderFoodList(); renderHiddenBuiltins();
   toast('已恢复内置食物');
 }
 function renderHiddenBuiltins(){
@@ -1392,54 +1399,13 @@ function renderHiddenBuiltins(){
   box.innerHTML='<div class="card-title" style="margin-top:16px">已删除的内置食物</div>'
     +hidden.map(n=>'<div class="row"><div><b class="v">'+esc(n)+'</b></div><button class="edit" onclick="restoreBuiltin(\''+esc(n)+'\')">恢复</button></div>').join('');
 }
-function basisVal(){
-  const b=parseFloat(document.getElementById('cBasis').value);
-  return (isNaN(b)||b<=0)?null:b;
-}
-function updatePreviews(){
-  const b=basisVal();
-  const unit=document.getElementById('cBasisUnit').value==='ml'?'ml':'g';
-  const u='100'+(unit==='ml'?'ml':'g');
-  const set=(id,v)=>{ const t=document.getElementById(id); if(t) t.textContent=(v==='')?'':'≈ '+v+' / '+u; };
-  ['cvKj','cvP','cvF','cvCh','cvC','cvNa'].forEach(id=>{ const t=document.getElementById(id); if(t) t.textContent=''; });
-  if(b===null) return;
-  const sc=100/b;
-  const v=id=>parseFloat(document.getElementById(id).value);
-  const kj=v('cKj');
-  set('cvKj', !isNaN(kj)&&kj>0 ? Math.round(kj*sc/4.184)+' kcal' : '');
-  const gv=x=> isNaN(x)||x<0 ? '' : +(x*sc).toFixed(1);
-  set('cvP', gv(v('cP')));
-  set('cvF', gv(v('cF')));
-  set('cvCh', gv(v('cCh')));
-  set('cvC', gv(v('cC')));
-  set('cvNa', gv(v('cNa')));
-}
-function addCustom(){
-  const name=(document.getElementById('cName').value||'').trim();
-  const basis=basisVal();
-  const kj=parseFloat(document.getElementById('cKj').value);
-  if(!name){ toast('请输入食物名称'); return; }
-  if(basis===null){ toast('请输入有效的基准重量 / 容量'); return; }
-  if(isNaN(kj)||kj<0||kj>100000){ toast('请输入有效能量（kJ / 基准）'); return; }
-  const unit=document.getElementById('cBasisUnit').value;
-  const g=id=>{ const x=parseFloat(document.getElementById(id).value); return (isNaN(x)||x<0)?0:x; };
-  const sc=100/basis;
-  const k=+(kj*sc/4.184).toFixed(1);
-  const item={name:name, basis:basis, unit:unit, kj:+(kj*sc).toFixed(1), k:k, p:+(g('cP')*sc).toFixed(1), f:+(g('cF')*sc).toFixed(1), ch:+(g('cCh')*sc).toFixed(1), c:+(g('cC')*sc).toFixed(1), na:+(g('cNa')*sc).toFixed(1)};
-  db.customs.push(item);
-  save();
-  clearCustomForm();
-  updateCustomButton();
-  renderFoodList(); renderCustomList();
-  toast('已添加：'+name+'（约 '+Math.round(k)+' kcal/100'+(unit==='ml'?'ml':'g')+'）');
-}
 function delCustom(i){
   if(!db.customs[i]) return;
   if(!confirm('删除自定义食物「'+db.customs[i].name+'」？')) return;
   if(editingCustomInline) editingCustomInline=null;
   db.customs.splice(i,1);
   save();
-  renderFoodList(); renderCustomList();
+  renderFoodList();
   toast('已删除自定义食物');
 }
 
