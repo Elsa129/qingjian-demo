@@ -339,6 +339,7 @@
       <div class="card">
         <div class="food-list" id="foodList"></div>
         <input class="food-search" id="foodSearch" placeholder="输入食物名称，如 米饭 / 鸡蛋" oninput="renderFoodList()">
+        <div id="foodEdit"></div>
         <div id="foodCreate"></div>
         <div class="add-bar">
           <input type="number" id="foodGrams" step="1" min="1" placeholder="克数，如 200">
@@ -1089,22 +1090,28 @@ function renderFoodList(){
     }else if(f.builtin){
       actions='<div class="actions"><button class="edit" onclick="event.stopPropagation(); editBuiltin(\''+esc(f.n)+'\')">编辑</button><button class="del" onclick="event.stopPropagation(); deleteBuiltin(\''+esc(f.n)+'\')">删除</button>'+(f.overridden?'<button class="edit" onclick="event.stopPropagation(); resetBuiltin(\''+esc(f.n)+'\')">恢复默认</button>':'')+'</div>';
     }
-    let row='<div class="food-item'+on+'" onclick="pickFood('+i+')"><span>'+esc(f.n)+(f.custom?'<span class="tag">自</span>':'')+(f.overridden?'<span class="tag">改</span>':'')+'<div class="d" style="font-size:11.5px">'+detail+'</div></span><span class="food-right">'+actions+'<span class="kcal">'+(f.k/100)+' kcal/g</span></span></div>';
-    if(f.custom && editingCustomInline && editingCustomInline.idx===f.idx && editingCustomInline.where==='foodList'){
-      row+=customInlinePanel(f.idx);
-    }
-    if(f.builtin && editingBuiltinInline===f.n){
-      row+=builtinInlinePanel(f.n);
-    }
-    return row;
+    return '<div class="food-item'+on+'" onclick="pickFood('+i+')"><span>'+esc(f.n)+(f.custom?'<span class="tag">自</span>':'')+(f.overridden?'<span class="tag">改</span>':'')+'<div class="d" style="font-size:11.5px">'+detail+'</div></span><span class="food-right">'+actions+'<span class="kcal">'+(f.k/100)+' kcal/g</span></span></div>';
   }).join('');
+  const editBox=document.getElementById('foodEdit');
+  let editHtml='';
+  if(editingCustomInline) editHtml=customInlinePanel(editingCustomInline.idx);
+  else if(editingBuiltinInline) editHtml=builtinInlinePanel(editingBuiltinInline);
+  if(editBox) editBox.innerHTML=editHtml;
   renderFoodCreate();
-  if(editingCustomInline || editingBuiltinInline){
-    requestAnimationFrame(function(){
-      const panel=box.querySelector('.inline-edit');
-      if(panel && panel.scrollIntoView) panel.scrollIntoView({block:'nearest', behavior:'smooth'});
-    });
+  if(editHtml) scrollFoodEditIntoView(editBox);
+}
+function scrollFoodEditIntoView(el){
+  if(!el) return;
+  if(el.scrollIntoView){
+    try{ el.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(e){ el.scrollIntoView(); }
   }
+  window.setTimeout(function(){
+    const r=el.getBoundingClientRect();
+    const vh=window.innerHeight || document.documentElement.clientHeight;
+    if(r.bottom > vh - 12 || r.top < 0){
+      window.scrollBy({top: r.top - 12, behavior:'smooth'});
+    }
+  }, 60);
 }
 function pickFood(i){
   selectedFood=foodAll()[i];
