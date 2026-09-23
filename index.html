@@ -87,6 +87,7 @@
   .macro-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
   .macro-bar i{display:block;height:100%;border-radius:99px;background:var(--primary);transition:width .3s ease}
   .macro-bar i.warn{background:var(--danger)}
+  .macro-risk{margin-top:6px;font-size:12px;line-height:1.5;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:6px 10px}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
   .quick{
@@ -644,15 +645,16 @@ function renderMacros(c){
   const t=macroPlan(c);
   const cur=todayMacros();
   const rows=[
-    {name:'蛋白质', cur:cur.p, target:t.protein, unit:'g'},
-    {name:'脂肪', cur:cur.f, target:t.fat, unit:'g'},
-    {name:'碳水', cur:cur.c, target:t.carb, unit:'g'},
-    {name:'钠', cur:cur.na, target:t.sodium, unit:'mg', limit:true}
+    {name:'蛋白质', cur:cur.p, target:t.protein, unit:'g', risk:'蛋白质已超过今日目标，长期过量会增加肾脏代谢负担。'},
+    {name:'脂肪', cur:cur.f, target:t.fat, unit:'g', risk:'脂肪已超过今日目标，容易造成热量盈余并增加血脂异常风险。'},
+    {name:'碳水', cur:cur.c, target:t.carb, unit:'g', risk:'碳水已超过今日目标，容易引起血糖波动并增加热量摄入。'},
+    {name:'钠', cur:cur.na, target:t.sodium, unit:'mg', limit:true, risk:'钠已超过今日目标，可能升高血压、加重水肿。'}
   ];
   box.innerHTML=rows.map(r=>{
     const over=r.cur>r.target;
     const pct=r.target>0?Math.min(100, r.cur/r.target*100):0;
-    return '<div class="macro-row"><div class="macro-head"><span>'+r.name+'</span><span><b>'+num(r.cur)+'</b> / '+(r.limit?'≤ ':'')+num(r.target)+' '+r.unit+'</span></div><div class="macro-bar"><i class="'+(over?'warn':'')+'" style="width:'+pct.toFixed(1)+'%"></i></div></div>';
+    const riskHtml=over ? '<div class="macro-risk">'+r.risk+'</div>' : '';
+    return '<div class="macro-row"><div class="macro-head"><span>'+r.name+'</span><span><b>'+num(r.cur)+'</b> / '+(r.limit?'≤ ':'')+num(r.target)+' '+r.unit+'</span></div><div class="macro-bar"><i class="'+(over?'warn':'')+'" style="width:'+pct.toFixed(1)+'%"></i></div>'+riskHtml+'</div>';
   }).join('');
 }
 function weekChange(){
@@ -1185,7 +1187,9 @@ function addFood(){
   const entry={date:todayStr(), name:f.n, grams:grams, kcal:k, p:f.p/100*grams, f:f.f/100*grams, c:f.c/100*grams, ch:(f.ch!=null?f.ch/100*grams:null), na:(f.na!=null?f.na/100*grams:null)};
   db.foods.push(entry);
   save();
+  selectedFood=null;
   document.getElementById('foodGrams').value='';
+  document.getElementById('foodSearch').value='';
   updateFoodButton();
   renderTodayFoods(); renderFoodList(); renderFoodHistory();
   toast('已添加 '+f.n+' '+grams+'g');
