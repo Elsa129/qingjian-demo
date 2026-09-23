@@ -84,6 +84,7 @@
   .macro-row:last-child{margin-bottom:0}
   .macro-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink2);margin-bottom:5px}
   .macro-head b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .macro-note{font-size:11px;color:var(--ink3);font-weight:400}
   .macro-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
   .macro-bar i{display:block;height:100%;border-radius:99px;background:var(--primary);transition:width .3s ease}
   .macro-bar i.warn{background:var(--danger)}
@@ -495,50 +496,50 @@
 <div id="toast"></div>
 
 <script>
-/* ===== 食物库（每 100 克：热量/蛋白/脂肪/碳水） ===== */
+/* ===== 食物库（每 100 克：热量/蛋白/脂肪/饱和脂肪/碳水/糖） ===== */
 const FOODS = [
-  {n:'米饭', k:116, p:2.6, f:0.3, c:25.9},
-  {n:'馒头', k:223, p:7.0, f:1.1, c:47.0},
-  {n:'面条（煮）', k:110, p:3.9, f:0.4, c:22.0},
-  {n:'全麦面包', k:246, p:10.0, f:4.0, c:45.0},
-  {n:'红薯', k:86, p:1.6, f:0.1, c:20.0},
-  {n:'玉米', k:112, p:4.0, f:1.2, c:22.0},
-  {n:'燕麦片', k:377, p:14.0, f:7.0, c:66.0},
-  {n:'土豆', k:77, p:2.0, f:0.1, c:17.0},
-  {n:'白粥', k:46, p:1.1, f:0.3, c:9.9},
-  {n:'鸡蛋', k:144, p:13.0, f:9.0, c:2.0},
-  {n:'鸡胸肉', k:133, p:24.0, f:3.0, c:0.0},
-  {n:'瘦猪肉', k:143, p:20.0, f:6.0, c:1.5},
-  {n:'瘦牛肉', k:125, p:20.0, f:4.0, c:0.0},
-  {n:'三文鱼', k:139, p:20.0, f:5.6, c:0.0},
-  {n:'鲫鱼', k:108, p:17.0, f:2.7, c:0.0},
-  {n:'虾', k:93, p:18.0, f:0.8, c:0.0},
-  {n:'豆腐', k:81, p:8.0, f:4.7, c:1.5},
-  {n:'豆干', k:142, p:16.0, f:8.0, c:3.0},
-  {n:'牛奶', k:54, p:3.0, f:3.2, c:3.4},
-  {n:'无糖酸奶', k:72, p:3.0, f:3.0, c:9.0},
-  {n:'豆浆', k:31, p:3.0, f:1.6, c:1.2},
-  {n:'西兰花', k:34, p:4.0, f:0.6, c:4.0},
-  {n:'菠菜', k:24, p:2.6, f:0.3, c:4.5},
-  {n:'生菜', k:15, p:1.3, f:0.3, c:2.0},
-  {n:'番茄', k:18, p:0.9, f:0.2, c:4.0},
-  {n:'黄瓜', k:15, p:0.8, f:0.2, c:2.9},
-  {n:'胡萝卜', k:39, p:1.0, f:0.2, c:8.8},
-  {n:'大白菜', k:17, p:1.5, f:0.2, c:3.2},
-  {n:'蘑菇', k:22, p:3.0, f:0.5, c:3.0},
-  {n:'茄子', k:21, p:1.1, f:0.2, c:4.9},
-  {n:'苹果', k:53, p:0.4, f:0.2, c:13.7},
-  {n:'香蕉', k:89, p:1.1, f:0.3, c:22.0},
-  {n:'橙子', k:48, p:0.8, f:0.2, c:11.0},
-  {n:'西瓜', k:31, p:0.5, f:0.3, c:7.6},
-  {n:'葡萄', k:44, p:0.5, f:0.2, c:10.3},
-  {n:'蓝莓', k:57, p:0.7, f:0.3, c:14.0},
-  {n:'花生', k:567, p:25.0, f:49.0, c:16.0},
-  {n:'核桃', k:654, p:15.0, f:65.0, c:14.0},
-  {n:'黑巧克力', k:600, p:8.0, f:43.0, c:46.0},
-  {n:'薯片', k:548, p:5.0, f:37.0, c:53.0},
-  {n:'可乐', k:43, p:0.0, f:0.0, c:10.8},
-  {n:'坚果混合', k:610, p:18.0, f:53.0, c:20.0}
+  {n:'米饭', k:116, p:2.6, f:0.3, sf:0.1, c:25.9, sug:0.1},
+  {n:'馒头', k:223, p:7.0, f:1.1, sf:0.2, c:47.0, sug:1.5},
+  {n:'面条（煮）', k:110, p:3.9, f:0.4, sf:0.1, c:22.0, sug:0.3},
+  {n:'全麦面包', k:246, p:10.0, f:4.0, sf:0.7, c:45.0, sug:4.5},
+  {n:'红薯', k:86, p:1.6, f:0.1, sf:0.1, c:20.0, sug:4.2},
+  {n:'玉米', k:112, p:4.0, f:1.2, sf:0.2, c:22.0, sug:3.2},
+  {n:'燕麦片', k:377, p:14.0, f:7.0, sf:1.2, c:66.0, sug:1.0},
+  {n:'土豆', k:77, p:2.0, f:0.1, sf:0.1, c:17.0, sug:0.8},
+  {n:'白粥', k:46, p:1.1, f:0.3, sf:0.1, c:9.9, sug:0.1},
+  {n:'鸡蛋', k:144, p:13.0, f:9.0, sf:2.6, c:2.0, sug:0.6},
+  {n:'鸡胸肉', k:133, p:24.0, f:3.0, sf:0.8, c:0.0, sug:0.0},
+  {n:'瘦猪肉', k:143, p:20.0, f:6.0, sf:2.0, c:1.5, sug:0.0},
+  {n:'瘦牛肉', k:125, p:20.0, f:4.0, sf:1.6, c:0.0, sug:0.0},
+  {n:'三文鱼', k:139, p:20.0, f:5.6, sf:1.1, c:0.0, sug:0.0},
+  {n:'鲫鱼', k:108, p:17.0, f:2.7, sf:0.6, c:0.0, sug:0.0},
+  {n:'虾', k:93, p:18.0, f:0.8, sf:0.2, c:0.0, sug:0.0},
+  {n:'豆腐', k:81, p:8.0, f:4.7, sf:0.7, c:1.5, sug:0.6},
+  {n:'豆干', k:142, p:16.0, f:8.0, sf:1.1, c:3.0, sug:0.5},
+  {n:'牛奶', k:54, p:3.0, f:3.2, sf:2.0, c:3.4, sug:4.8},
+  {n:'无糖酸奶', k:72, p:3.0, f:3.0, sf:1.9, c:9.0, sug:4.7},
+  {n:'豆浆', k:31, p:3.0, f:1.6, sf:0.2, c:1.2, sug:0.6},
+  {n:'西兰花', k:34, p:4.0, f:0.6, sf:0.1, c:4.0, sug:1.5},
+  {n:'菠菜', k:24, p:2.6, f:0.3, sf:0.1, c:4.5, sug:0.4},
+  {n:'生菜', k:15, p:1.3, f:0.3, sf:0.1, c:2.0, sug:0.8},
+  {n:'番茄', k:18, p:0.9, f:0.2, sf:0.1, c:4.0, sug:2.6},
+  {n:'黄瓜', k:15, p:0.8, f:0.2, sf:0.1, c:2.9, sug:1.7},
+  {n:'胡萝卜', k:39, p:1.0, f:0.2, sf:0.1, c:8.8, sug:4.7},
+  {n:'大白菜', k:17, p:1.5, f:0.2, sf:0.1, c:3.2, sug:1.4},
+  {n:'蘑菇', k:22, p:3.0, f:0.5, sf:0.1, c:3.0, sug:1.5},
+  {n:'茄子', k:21, p:1.1, f:0.2, sf:0.1, c:4.9, sug:3.5},
+  {n:'苹果', k:53, p:0.4, f:0.2, sf:0.1, c:13.7, sug:10.4},
+  {n:'香蕉', k:89, p:1.1, f:0.3, sf:0.1, c:22.0, sug:12.2},
+  {n:'橙子', k:48, p:0.8, f:0.2, sf:0.1, c:11.0, sug:9.4},
+  {n:'西瓜', k:31, p:0.5, f:0.3, sf:0.1, c:7.6, sug:6.2},
+  {n:'葡萄', k:44, p:0.5, f:0.2, sf:0.1, c:10.3, sug:8.1},
+  {n:'蓝莓', k:57, p:0.7, f:0.3, sf:0.1, c:14.0, sug:10.0},
+  {n:'花生', k:567, p:25.0, f:49.0, sf:6.9, c:16.0, sug:4.0},
+  {n:'核桃', k:654, p:15.0, f:65.0, sf:6.1, c:14.0, sug:2.6},
+  {n:'黑巧克力', k:600, p:8.0, f:43.0, sf:25.0, c:46.0, sug:40.0},
+  {n:'薯片', k:548, p:5.0, f:37.0, sf:4.5, c:53.0, sug:1.5},
+  {n:'可乐', k:43, p:0.0, f:0.0, sf:0.0, c:10.8, sug:10.8},
+  {n:'坚果混合', k:610, p:18.0, f:53.0, sf:7.0, c:20.0, sug:4.0}
 ];
 
 /* ===== 存储 ===== */
@@ -628,10 +629,12 @@ function macroPlan(c){
   const protein=Math.round(c.w*1.6);
   const fat=Math.round(c.budget*0.25/9);
   const carb=Math.max(0, Math.round((c.budget-protein*4-fat*9)/4));
-  return {protein:protein, fat:fat, carb:carb, sodium:2000};
+  const satfat=Math.round(c.budget*0.10/9);
+  const sugar=Math.round(c.budget*0.10/4);
+  return {protein:protein, fat:fat, carb:carb, sodium:2000, satfat:satfat, sugar:sugar};
 }
 function todayMacros(){
-  return db.foods.filter(f=>f.date===todayStr()).reduce((s,f)=>({p:s.p+(f.p||0), f:s.f+(f.f||0), c:s.c+(f.c||0), na:s.na+(f.na||0)}), {p:0,f:0,c:0,na:0});
+  return db.foods.filter(f=>f.date===todayStr()).reduce((s,f)=>({p:s.p+(f.p||0), f:s.f+(f.f||0), sf:s.sf+(f.sf||0), c:s.c+(f.c||0), sug:s.sug+(f.sug||0), na:s.na+(f.na||0)}), {p:0,f:0,sf:0,c:0,sug:0,na:0});
 }
 function renderMacros(c){
   const sub=document.getElementById('macroSub');
@@ -641,20 +644,34 @@ function renderMacros(c){
     box.innerHTML='<div class="empty">完善资料并记录体重后自动计算。</div>';
     return;
   }
-  sub.textContent='蛋白 1.6 g/kg · 脂肪 25% · 碳水为余量';
+  sub.textContent='';
   const t=macroPlan(c);
   const cur=todayMacros();
   const rows=[
-    {name:'蛋白质', cur:cur.p, target:t.protein, unit:'g', risk:'蛋白质已超过今日目标，长期过量会增加肾脏代谢负担。'},
-    {name:'脂肪', cur:cur.f, target:t.fat, unit:'g', risk:'脂肪已超过今日目标，容易造成热量盈余并增加血脂异常风险。'},
-    {name:'碳水', cur:cur.c, target:t.carb, unit:'g', risk:'碳水已超过今日目标，容易引起血糖波动并增加热量摄入。'},
-    {name:'钠', cur:cur.na, target:t.sodium, unit:'mg', limit:true, risk:'钠已超过今日目标，可能升高血压、加重水肿。'}
+    {name:'蛋白质', note:'按 1.6 g/kg', cur:cur.p, target:t.protein, unit:'g',
+     risk:'长期过量蛋白质会加重肾脏高滤过与肾小球内压，对慢性肾病、糖尿病或高血压人群可能加速肾功能减退，并常伴随总能量超标。',
+     advice:'减少单餐高蛋白食物份量并保证充足饮水；合并肾脏疾病者应按医嘱将蛋白限制在 0.6–0.8 g/kg/d。'},
+    {name:'脂肪', note:'按 25% 能量', cur:cur.f, target:t.fat, unit:'g',
+     risk:'脂肪供能比过高易导致能量盈余与内脏脂肪蓄积，长期可升高 LDL-C、甘油三酯及动脉粥样硬化风险。',
+     advice:'减少油炸、肥肉、奶油及加工零食，以鱼、坚果、橄榄油等不饱和脂肪酸替代，并控制总热量。'},
+    {name:'饱和脂肪', note:'≤10% 能量', cur:cur.sf, target:t.satfat, unit:'g', limit:true,
+     risk:'饱和脂肪供能比过高会升高 LDL-C，长期增加动脉粥样硬化性心血管疾病风险。',
+     advice:'用不饱和脂肪酸替代饱和脂肪：减少肥肉、黄油、椰子油和油炸食品，选择鱼类、坚果、橄榄油。'},
+    {name:'碳水', note:'为余量', cur:cur.c, target:t.carb, unit:'g',
+     risk:'碳水尤其精制糖与高升糖指数食物易造成餐后血糖大幅波动和高胰岛素血症，长期增加胰岛素抵抗及体重反弹风险。',
+     advice:'以全谷物、薯类、豆类等复合碳水替代精制主食，减少含糖饮料，并配合蛋白质与膳食纤维延缓吸收。'},
+    {name:'糖', note:'≤10% 能量', cur:cur.sug, target:t.sugar, unit:'g', limit:true,
+     risk:'糖摄入超标尤其游离糖会增加能量摄入并促进脂肪合成，长期与肥胖、胰岛素抵抗及非酒精性脂肪肝相关。',
+     advice:'减少含糖饮料、甜点和精制糖，优先吃完整水果而非果汁，并控制每日总量。'},
+    {name:'钠', note:'≤2000 mg', cur:cur.na, target:t.sodium, unit:'mg', limit:true,
+     risk:'钠超标会增加水钠潴留与血容量负荷，引起血压升高、水肿，长期增加高血压、脑卒中及心血管事件风险。',
+     advice:'适当多饮水促进钠经尿液排出；增加香蕉、橙子、猕猴桃、菠菜、土豆等富钾食物，肾功能不全者补钾需遵医嘱。'}
   ];
   box.innerHTML=rows.map(r=>{
     const over=r.cur>r.target;
     const pct=r.target>0?Math.min(100, r.cur/r.target*100):0;
-    const riskHtml=over ? '<div class="macro-risk">'+r.risk+'</div>' : '';
-    return '<div class="macro-row"><div class="macro-head"><span>'+r.name+'</span><span><b>'+num(r.cur)+'</b> / '+(r.limit?'≤ ':'')+num(r.target)+' '+r.unit+'</span></div><div class="macro-bar"><i class="'+(over?'warn':'')+'" style="width:'+pct.toFixed(1)+'%"></i></div>'+riskHtml+'</div>';
+    const riskHtml=over ? '<div class="macro-risk"><strong>风险：</strong>'+r.risk+'<br><strong>建议：</strong>'+r.advice+'</div>' : '';
+    return '<div class="macro-row"><div class="macro-head"><span>'+r.name+' <small class="macro-note">'+r.note+'</small></span><span><b>'+num(r.cur)+'</b> / '+(r.limit?'≤ ':'')+num(r.target)+' '+r.unit+'</span></div><div class="macro-bar"><i class="'+(over?'warn':'')+'" style="width:'+pct.toFixed(1)+'%"></i></div>'+riskHtml+'</div>';
   }).join('');
 }
 function weekChange(){
@@ -995,9 +1012,9 @@ function foodAll(){
   const builtins=FOODS.filter(f=>!hidden[f.n]).map(f=>{
     const o=ov[f.n];
     if(!o) return Object.assign({}, f, {builtin:true});
-    return {n:f.n, k:o.k!=null?o.k:f.k, p:o.p!=null?o.p:f.p, f:o.f!=null?o.f:f.f, c:o.c!=null?o.c:f.c, ch:o.ch!=null?o.ch:f.ch, na:o.na!=null?o.na:f.na, builtin:true, overridden:true};
+    return {n:f.n, k:o.k!=null?o.k:f.k, p:o.p!=null?o.p:f.p, f:o.f!=null?o.f:f.f, sf:o.sf!=null?o.sf:f.sf, c:o.c!=null?o.c:f.c, sug:o.sug!=null?o.sug:f.sug, ch:o.ch!=null?o.ch:f.ch, na:o.na!=null?o.na:f.na, builtin:true, overridden:true};
   });
-  return builtins.concat(db.customs.map((c,i)=>({n:c.name+'（自定义）', k:c.k, p:c.p, f:c.f, c:c.c, ch:c.ch, na:c.na, custom:true, idx:i})));
+  return builtins.concat(db.customs.map((c,i)=>({n:c.name+'（自定义）', k:c.k, p:c.p, f:c.f, sf:c.sf, c:c.c, sug:c.sug, ch:c.ch, na:c.na, custom:true, idx:i})));
 }
 function sameFood(a,b){ return a.date===b.date && a.name===b.name && Math.abs(a.grams-b.grams)<0.01 && Math.abs(a.kcal-b.kcal)<0.01; }
 function updateFoodButton(){
@@ -1060,7 +1077,7 @@ function saveFoodInlineFromList(list,pos){
   if(!date){ toast('请选择日期'); return false; }
   if(!f){ toast('请选择食物'); return false; }
   if(!grams||grams<=0||grams>5000){ toast('请输入有效克数'); return false; }
-  const entry={date:date, name:f.n, grams:grams, kcal:f.k/100*grams, p:f.p/100*grams, f:f.f/100*grams, c:f.c/100*grams, ch:(f.ch!=null?f.ch/100*grams:null), na:(f.na!=null?f.na/100*grams:null)};
+  const entry={date:date, name:f.n, grams:grams, kcal:f.k/100*grams, p:f.p/100*grams, f:f.f/100*grams, sf:(f.sf!=null?f.sf/100*grams:null), c:f.c/100*grams, sug:(f.sug!=null?f.sug/100*grams:null), ch:(f.ch!=null?f.ch/100*grams:null), na:(f.na!=null?f.na/100*grams:null)};
   const idx=db.foods.indexOf(rec);
   if(idx>=0) db.foods.splice(idx,1);
   db.foods.push(entry);
@@ -1084,7 +1101,7 @@ function renderFoodList(){
   box.innerHTML=list.map(o=>{
     const f=o.f, i=o.i;
     const on=selectedFood && selectedFood.n===f.n && selectedFood.k===f.k ? ' on':'';
-    let detail='每 100g：'+f.k+' kcal · 蛋白 '+f.p+'g · 脂肪 '+f.f+'g · 碳水 '+f.c+'g';
+    let detail='每 100g：'+f.k+' kcal · 蛋白 '+f.p+'g · 脂肪 '+f.f+'g · 饱和脂肪 '+r1(f.sf??0)+'g · 碳水 '+f.c+'g · 糖 '+r1(f.sug??0)+'g';
     if(f.ch!=null || f.na!=null) detail+=' · 胆固醇 '+(f.ch??0)+'mg · 钠 '+(f.na??0)+'mg';
     let actions='';
     if(f.custom){
@@ -1149,8 +1166,10 @@ function customCreatePanel(name){
     +'<div><label>能量（kJ / 基准）</label><input type="number" id="ncKj" step="1" min="0" placeholder="如 660"></div>'
     +'<div><label>蛋白质（g / 基准）</label><input type="number" id="ncP" step="0.1" min="0" placeholder="如 2.5"></div>'
     +'<div><label>脂肪（g / 基准）</label><input type="number" id="ncF" step="0.1" min="0" placeholder="如 3.2"></div>'
+    +'<div><label>饱和脂肪（g / 基准）</label><input type="number" id="ncSF" step="0.1" min="0" placeholder="如 1.5"></div>'
     +'<div><label>胆固醇（mg / 基准）</label><input type="number" id="ncCh" step="0.1" min="0" placeholder="如 0"></div>'
     +'<div><label>碳水化合物（g / 基准）</label><input type="number" id="ncC" step="0.1" min="0" placeholder="如 30"></div>'
+    +'<div><label>糖（g / 基准）</label><input type="number" id="ncSug" step="0.1" min="0" placeholder="如 5.0"></div>'
     +'<div><label>钠（mg / 基准）</label><input type="number" id="ncNa" step="0.1" min="0" placeholder="如 150"></div>'
     +'</div>'
     +'<div class="form-hint">按营养成分表填写「该基准」下的数值，自动换算为每 100 克 / 100 毫升（能量 1 kcal ≈ 4.184 kJ）。</div>'
@@ -1168,7 +1187,7 @@ function saveCreateCustom(){
   const gv=id=>{ const x=parseFloat(document.getElementById(id).value); return (isNaN(x)||x<0)?0:x; };
   const sc=100/basis;
   const k=+(kj*sc/4.184).toFixed(1);
-  const item={name:name, basis:basis, unit:unit, kj:+(kj*sc).toFixed(1), k:k, p:+(gv('ncP')*sc).toFixed(1), f:+(gv('ncF')*sc).toFixed(1), ch:+(gv('ncCh')*sc).toFixed(1), c:+(gv('ncC')*sc).toFixed(1), na:+(gv('ncNa')*sc).toFixed(1)};
+  const item={name:name, basis:basis, unit:unit, kj:+(kj*sc).toFixed(1), k:k, p:+(gv('ncP')*sc).toFixed(1), f:+(gv('ncF')*sc).toFixed(1), sf:+(gv('ncSF')*sc).toFixed(1), ch:+(gv('ncCh')*sc).toFixed(1), c:+(gv('ncC')*sc).toFixed(1), sug:+(gv('ncSug')*sc).toFixed(1), na:+(gv('ncNa')*sc).toFixed(1)};
   db.customs.push(item);
   save();
   creatingCustomName=null;
@@ -1184,7 +1203,7 @@ function addFood(){
   if(!grams||grams<=0||grams>5000){ toast('请输入有效克数'); return; }
   const f=selectedFood;
   const k=f.k/100*grams;
-  const entry={date:todayStr(), name:f.n, grams:grams, kcal:k, p:f.p/100*grams, f:f.f/100*grams, c:f.c/100*grams, ch:(f.ch!=null?f.ch/100*grams:null), na:(f.na!=null?f.na/100*grams:null)};
+  const entry={date:todayStr(), name:f.n, grams:grams, kcal:k, p:f.p/100*grams, f:f.f/100*grams, sf:(f.sf!=null?f.sf/100*grams:null), c:f.c/100*grams, sug:(f.sug!=null?f.sug/100*grams:null), ch:(f.ch!=null?f.ch/100*grams:null), na:(f.na!=null?f.na/100*grams:null)};
   db.foods.push(entry);
   save();
   selectedFood=null;
@@ -1202,13 +1221,13 @@ function renderTodayFoods(){
     box.innerHTML='<div class="empty" style="padding:14px 8px">今天还没记录饮食。</div>';
   }else{
     box.innerHTML=list.map((f,pos)=>{
-      let html='<div class="row"><div><b class="v">'+esc(f.name)+'</b> <span class="d">'+r1(f.grams)+'g</span></div><div style="display:flex;align-items:center;gap:8px"><span class="v">'+num(f.kcal)+' kcal</span><button class="edit" onclick="editTodayFood('+pos+')">编辑</button><button class="del" onclick="delFood(\''+esc(f.name)+'\','+f.grams+','+f.kcal+')">删除</button></div></div>';
+      let html='<div class="row"><div><b class="v">'+esc(f.name)+'</b> <span class="d">'+r1(f.grams)+'g · 饱和脂肪 '+r1(f.sf||0)+'g · 糖 '+r1(f.sug||0)+'g</span></div><div style="display:flex;align-items:center;gap:8px"><span class="v">'+num(f.kcal)+' kcal</span><button class="edit" onclick="editTodayFood('+pos+')">编辑</button><button class="del" onclick="delFood(\''+esc(f.name)+'\','+f.grams+','+f.kcal+')">删除</button></div></div>';
       if(editingTodayPos===pos) html+=foodInlinePanel(f,'saveTodayFoodInline('+pos+')','cancelTodayFoodInline()');
       return html;
     }).join('');
   }
-  const tot=list.reduce((s,f)=>({k:s.k+f.kcal,p:s.p+f.p,f:s.f+f.f,c:s.c+f.c,na:s.na+(f.na||0)}),{k:0,p:0,f:0,c:0,na:0});
-  document.getElementById('foodTotal').textContent='今日合计：'+num(tot.k)+' kcal · 蛋白 '+r1(tot.p)+'g · 脂肪 '+r1(tot.f)+'g · 碳水 '+r1(tot.c)+'g · 钠 '+r1(tot.na)+'mg';
+  const tot=list.reduce((s,f)=>({k:s.k+f.kcal,p:s.p+f.p,f:s.f+f.f,sf:s.sf+(f.sf||0),c:s.c+f.c,sug:s.sug+(f.sug||0),na:s.na+(f.na||0)}),{k:0,p:0,f:0,sf:0,c:0,sug:0,na:0});
+  document.getElementById('foodTotal').textContent='今日合计：'+num(tot.k)+' kcal · 蛋白 '+r1(tot.p)+'g · 脂肪 '+r1(tot.f)+'g · 饱和脂肪 '+r1(tot.sf)+'g · 碳水 '+r1(tot.c)+'g · 糖 '+r1(tot.sug)+'g · 钠 '+r1(tot.na)+'mg';
 }
 let histSelected=todayStr();
 let calCursor=(()=>{ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })();
@@ -1269,15 +1288,15 @@ function renderFoodDetail(date){
     return;
   }
   box.innerHTML=list.map((f,pos)=>{
-    let html='<div class="row"><div><b class="v">'+esc(f.name)+'</b> <span class="d">'+r1(f.grams)+'g</span></div><div style="display:flex;align-items:center;gap:8px"><span class="v">'+num(f.kcal)+' kcal</span><button class="edit" onclick="editHistFood(\''+date+'\','+pos+')">编辑</button><button class="del" onclick="delFoodHist(\''+date+'\',\''+esc(f.name)+'\','+f.grams+','+f.kcal+')">删除</button></div></div>';
+    let html='<div class="row"><div><b class="v">'+esc(f.name)+'</b> <span class="d">'+r1(f.grams)+'g · 饱和脂肪 '+r1(f.sf||0)+'g · 糖 '+r1(f.sug||0)+'g</span></div><div style="display:flex;align-items:center;gap:8px"><span class="v">'+num(f.kcal)+' kcal</span><button class="edit" onclick="editHistFood(\''+date+'\','+pos+')">编辑</button><button class="del" onclick="delFoodHist(\''+date+'\',\''+esc(f.name)+'\','+f.grams+','+f.kcal+')">删除</button></div></div>';
     if(editingHistPos===pos) html+=foodInlinePanel(f,'saveHistFoodInline(\''+date+'\','+pos+')','cancelHistFoodInline()');
     return html;
   }).join('');
-  const tot=list.reduce((s,f)=>({k:s.k+f.kcal,p:s.p+f.p,f:s.f+f.f,c:s.c+f.c,na:s.na+(f.na||0)}),{k:0,p:0,f:0,c:0,na:0});
+  const tot=list.reduce((s,f)=>({k:s.k+f.kcal,p:s.p+f.p,f:s.f+f.f,sf:s.sf+(f.sf||0),c:s.c+f.c,sug:s.sug+(f.sug||0),na:s.na+(f.na||0)}),{k:0,p:0,f:0,sf:0,c:0,sug:0,na:0});
   const budget=budgetOn(date);
   let status='';
   if(budget!=null) status=' · '+(tot.k<=budget?'达标':'超出 '+num(tot.k-budget)+' kcal');
-  totalEl.textContent='合计：'+num(tot.k)+' kcal'+status+' · 蛋白 '+r1(tot.p)+'g · 脂肪 '+r1(tot.f)+'g · 碳水 '+r1(tot.c)+'g · 钠 '+r1(tot.na)+'mg';
+  totalEl.textContent='合计：'+num(tot.k)+' kcal'+status+' · 蛋白 '+r1(tot.p)+'g · 脂肪 '+r1(tot.f)+'g · 饱和脂肪 '+r1(tot.sf)+'g · 碳水 '+r1(tot.c)+'g · 糖 '+r1(tot.sug)+'g · 钠 '+r1(tot.na)+'mg';
 }
 function delFood(name, grams, kcal){
   const rec={date:todayStr(), name:name, grams:grams, kcal:kcal};
@@ -1316,8 +1335,10 @@ function customInlinePanel(i){
     +'<div><label>能量（kJ / 基准）</label><input type="number" id="ieCKj" step="1" min="0" value="'+nv(c.kj)+'"></div>'
     +'<div><label>蛋白质（g / 基准）</label><input type="number" id="ieCP" step="0.1" min="0" value="'+nv(c.p)+'"></div>'
     +'<div><label>脂肪（g / 基准）</label><input type="number" id="ieCF" step="0.1" min="0" value="'+nv(c.f)+'"></div>'
+    +'<div><label>饱和脂肪（g / 基准）</label><input type="number" id="ieCSF" step="0.1" min="0" value="'+nv(c.sf)+'"></div>'
     +'<div><label>胆固醇（mg / 基准）</label><input type="number" id="ieCCh" step="0.1" min="0" value="'+nv(c.ch)+'"></div>'
     +'<div><label>碳水化合物（g / 基准）</label><input type="number" id="ieCC" step="0.1" min="0" value="'+nv(c.c)+'"></div>'
+    +'<div><label>糖（g / 基准）</label><input type="number" id="ieCSug" step="0.1" min="0" value="'+nv(c.sug)+'"></div>'
     +'<div><label>钠（mg / 基准）</label><input type="number" id="ieCNa" step="0.1" min="0" value="'+nv(c.na)+'"></div>'
     +'</div>'
     +'<div class="inline-actions"><button class="btn mini" onclick="saveCustomInline('+i+')">保存</button><button class="btn mini ghost" onclick="cancelCustomInline()">取消</button></div>'
@@ -1334,7 +1355,7 @@ function saveCustomInline(i){
   const gv=id=>{ const x=parseFloat(document.getElementById(id).value); return (isNaN(x)||x<0)?0:x; };
   const sc=100/basis;
   const k=+(kj*sc/4.184).toFixed(1);
-  const item={name:name, basis:basis, unit:unit, kj:+(kj*sc).toFixed(1), k:k, p:+(gv('ieCP')*sc).toFixed(1), f:+(gv('ieCF')*sc).toFixed(1), ch:+(gv('ieCCh')*sc).toFixed(1), c:+(gv('ieCC')*sc).toFixed(1), na:+(gv('ieCNa')*sc).toFixed(1)};
+  const item={name:name, basis:basis, unit:unit, kj:+(kj*sc).toFixed(1), k:k, p:+(gv('ieCP')*sc).toFixed(1), f:+(gv('ieCF')*sc).toFixed(1), sf:+(gv('ieCSF')*sc).toFixed(1), ch:+(gv('ieCCh')*sc).toFixed(1), c:+(gv('ieCC')*sc).toFixed(1), sug:+(gv('ieCSug')*sc).toFixed(1), na:+(gv('ieCNa')*sc).toFixed(1)};
   if(db.customs[i]) db.customs[i]=item; else db.customs.push(item);
   save();
   editingCustomInline=null;
@@ -1354,7 +1375,7 @@ function builtinInlinePanel(name){
   const base=FOODS.find(x=>x.n===name);
   if(!base) return '';
   const o=(db.foodOverrides||{})[name]||{};
-  const cur={k:o.k!=null?o.k:base.k, p:o.p!=null?o.p:base.p, f:o.f!=null?o.f:base.f, c:o.c!=null?o.c:base.c, ch:o.ch!=null?o.ch:base.ch, na:o.na!=null?o.na:base.na};
+  const cur={k:o.k!=null?o.k:base.k, p:o.p!=null?o.p:base.p, f:o.f!=null?o.f:base.f, sf:o.sf!=null?o.sf:base.sf, c:o.c!=null?o.c:base.c, sug:o.sug!=null?o.sug:base.sug, ch:o.ch!=null?o.ch:base.ch, na:o.na!=null?o.na:base.na};
   const nv=x=> x!=null ? x : '';
   return '<div class="inline-edit builtin-inline">'
     +'<div class="inline-grid">'
@@ -1362,7 +1383,9 @@ function builtinInlinePanel(name){
     +'<div><label>能量（kcal / 100g）</label><input type="number" id="ieBK" step="0.1" min="0" value="'+nv(cur.k)+'"></div>'
     +'<div><label>蛋白质（g / 100g）</label><input type="number" id="ieBP" step="0.1" min="0" value="'+nv(cur.p)+'"></div>'
     +'<div><label>脂肪（g / 100g）</label><input type="number" id="ieBF" step="0.1" min="0" value="'+nv(cur.f)+'"></div>'
+    +'<div><label>饱和脂肪（g / 100g）</label><input type="number" id="ieBSF" step="0.1" min="0" value="'+nv(cur.sf)+'"></div>'
     +'<div><label>碳水化合物（g / 100g）</label><input type="number" id="ieBC" step="0.1" min="0" value="'+nv(cur.c)+'"></div>'
+    +'<div><label>糖（g / 100g）</label><input type="number" id="ieBSug" step="0.1" min="0" value="'+nv(cur.sug)+'"></div>'
     +'<div><label>胆固醇（mg / 100g）</label><input type="number" id="ieBCh" step="0.1" min="0" value="'+nv(cur.ch)+'"></div>'
     +'<div><label>钠（mg / 100g）</label><input type="number" id="ieBNa" step="0.1" min="0" value="'+nv(cur.na)+'"></div>'
     +'</div>'
@@ -1374,7 +1397,7 @@ function saveBuiltinInline(name){
   const k=g('ieBK');
   if(k==null){ toast('请输入有效能量（kcal / 100g）'); return; }
   if(!db.foodOverrides) db.foodOverrides={};
-  db.foodOverrides[name]={k:k, p:g('ieBP'), f:g('ieBF'), c:g('ieBC'), ch:g('ieBCh'), na:g('ieBNa')};
+  db.foodOverrides[name]={k:k, p:g('ieBP'), f:g('ieBF'), sf:g('ieBSF'), c:g('ieBC'), sug:g('ieBSug'), ch:g('ieBCh'), na:g('ieBNa')};
   save();
   editingBuiltinInline=null;
   renderFoodList();
@@ -1598,7 +1621,7 @@ function loadDemo(){
     const date=shiftDate(todayStr(),-m.off);
     for(const [name,grams] of m.items){
       const f=FOODS.find(x=>x.n===name);
-      db.foods.push({date:date, name:name, grams:grams, kcal:f.k/100*grams, p:f.p/100*grams, f:f.f/100*grams, c:f.c/100*grams});
+      db.foods.push({date:date, name:name, grams:grams, kcal:f.k/100*grams, p:f.p/100*grams, f:f.f/100*grams, sf:f.sf/100*grams, c:f.c/100*grams, sug:f.sug/100*grams});
     }
   }
   save();
